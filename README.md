@@ -1,42 +1,70 @@
 # Large Language Model
-The LLM is leading the AI revolution, it would be interesting to understand the underhood of the model itself. 
+The LLM is leading the AI revolution, and it’s interesting to see what’s going on under the hood.
 
-Intuitively, the math and concepts of LLM should be easy to understand. 
+Intuitively, the math and ideas behind an LLM are not too hard to understand.
 
 ## Tokenization
-Tokenization is a process of grouping charactors into tokens. For LLM, this process could compact the input and reduce the context size. It enhances the model's capability of understanding concepts during the training process.
+Tokenization is the process of grouping **characters** into **tokens**. For an LLM, this compacts the input and reduces the context size. It also helps the model learn concepts during training.
 
-A well adopted tokenization algorithm is BPE. It is originally introduced to compact text. A revised version is used in LLM to tokenize the input to a desired length of lookup table.
+A common tokenization method is **BPE** (Byte-Pair Encoding). It was first used to compress text; a revised version is used in LLMs to map text into a fixed length of tokens.
 
-It won't take long to implement it. Will come back and add an implementation.
+*(I’ll come back and add an implementation.)*
 
 ## Transformer
-I have got a rough concept of the transformer. It's a multi layer neuro network. Each layer contains multiple "head" to do self-attention prediction.
-### Let's assume the input is X1, the flow of prediction is like this:
-X1 -> TransformerModel.Forward -> X2 . X2 is the prediction of X1 which means X2(i,j) is the next token of X1(i,j). Actually not exactlly like this as there is a tokenization process during the TransformerModel. 
-### Inside the TransformerModel:
-X1 -> Layer1.Forward -> Layer2.Forward ... -> LayerN.Forward -> X2. (This is a classical multilayer neuro network). The forward is done sequencially.
-### Inside each Layer:
-This is the key of self-attention:
-Assume X1.shape = [B, T, C]. 
-Each layer will have m heads which could run parallel.
-So, we have:
-Parallel( head_i(x) for i in m). 
-The output of head(x) is of shape [B, T, head_size].
-Concat all the output of the heads, we get the output of this layer.
-### Inside each header:
-Each header has three matrixs called **Key**, **Query**, **Value**. Each of them have shape [C, head_size]
-Multiple them each with input X1, we have:
-key = Key(X1)  // [B,T, head_size]
-query = Query(X1)
-value = Value(X1)
+I have a rough understanding of the Transformer now. It’s a multi-layer neural network. Each layer has several “heads” that do self-attention.
 
-I haven't quite got how this [K,Q,V] mechanism comes out. But literally, we could imaging 
-Key is asking what to find,
-Query is asking how to find,
-Value is giving the current context.
-Then the result is a partial prediction.
-The output = key@query@value.
+### Flow of prediction
+Assume the input is `X1`:
 
-### The power of transformer
-The heads are all independent so they could be trained parallelly. So it could be easily scaled. 
+```
+X1 -> TransformerModel.forward -> X2
+```
+
+`X2` is the prediction for `X1`, so `X2(i,j)` is the next token of `X1(i,j)`. (In practice, tokenization happens before the Transformer.)
+
+### Inside the Transformer
+```
+X1 -> Layer1.forward -> Layer2.forward -> … -> LayerN.forward -> X2
+```
+Layers run one after another.
+
+### Inside each layer
+Self-attention is the key idea.
+
+* Let `X` have shape `[B, T, C]`.
+* Each layer has **m** heads that run in parallel:
+
+```
+head_out_i = head_i(X)  for i in 1..m
+```
+
+* Each `head_out_i` has shape `[B, T, head_size]`.
+* Concatenate all `head_out_i` to get the layer output.
+
+### Inside each head
+Each head has three matrices:
+
+| Name  | Shape             |
+|-------|-------------------|
+| Key   | `[C, head_size]`  |
+| Query | `[C, head_size]`  |
+| Value | `[C, head_size]`  |
+
+Given `X`:
+
+```text
+key   = X @ Key
+query = X @ Query
+value = X @ Value
+```
+
+My current (rough) understanding:
+
+* **Key** says what to look for.
+* **Query** says how to match.
+* **Value** carries the context.
+
+The head’s output comes from combining `key`, `query`, and `value`.
+
+### Why the Transformer scales
+All heads are independent, so they can train in parallel and scale up easily.
